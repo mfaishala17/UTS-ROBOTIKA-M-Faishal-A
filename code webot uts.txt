@@ -1,0 +1,44 @@
+from controller import Robot, Camera, Motor
+
+TIME_STEP = 32
+COLOR_THRESHOLD = 100  # Ambang batas untuk mendeteksi warna merah
+
+# Inisialisasi robot, kamera, dan motor
+robot = Robot()
+camera = robot.getDevice("camera")
+camera.enable(TIME_STEP)
+
+left_motor = robot.getDevice("left wheel motor")
+right_motor = robot.getDevice("right wheel motor")
+left_motor.setPosition(float('inf'))
+right_motor.setPosition(float('inf'))
+
+def detect_red(image):
+    width, height = camera.getWidth(), camera.getHeight()
+    for x in range(width):
+        for y in range(height):
+            # Mendapatkan nilai RGB untuk setiap piksel
+            red = camera.imageGetRed(image, width, x, y)
+            green = camera.imageGetGreen(image, width, x, y)
+            blue = camera.imageGetBlue(image, width, x, y)
+            
+            # Memeriksa apakah piksel mendekati warna merah
+            if red > COLOR_THRESHOLD and green < COLOR_THRESHOLD and blue < COLOR_THRESHOLD:
+                return True
+    return False
+
+# Loop utama
+while robot.step(TIME_STEP) != -1:
+    # Mendapatkan gambar dari kamera
+    image = camera.getImage()
+    
+    # Deteksi warna merah
+    if detect_red(image):
+        print("Warna merah terdeteksi!")
+        # Masukkan logika aksi robot ketika warna merah terdeteksi, misalnya bergerak maju
+        left_motor.setVelocity(2.0)
+        right_motor.setVelocity(2.0)
+    else:
+        # Jika tidak ada warna merah, berhenti
+        left_motor.setVelocity(0)
+        right_motor.setVelocity(0)
